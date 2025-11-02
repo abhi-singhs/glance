@@ -278,7 +278,8 @@ func (a *application) resolveUserDefinedAssetPath(path string) string {
 }
 
 type templateRequestData struct {
-	Theme *themeProperties
+	Theme    *themeProperties
+	Username string
 }
 
 type templateData struct {
@@ -301,6 +302,7 @@ func (a *application) populateTemplateRequestData(data *templateRequestData, r *
 	}
 
 	data.Theme = theme
+	data.Username = a.getUsernameFromRequest(r)
 }
 
 func (a *application) handlePageRequest(w http.ResponseWriter, r *http.Request) {

@@ -285,6 +285,36 @@ func (a *application) isAuthorized(w http.ResponseWriter, r *http.Request) bool 
 	return true
 }
 
+// getUsernameFromRequest extracts the username from the session cookie if the user is authenticated
+// Returns empty string if not authenticated or if there's an error
+func (a *application) getUsernameFromRequest(r *http.Request) string {
+	if !a.RequiresAuth {
+		return ""
+	}
+
+	token, err := r.Cookie(AUTH_SESSION_COOKIE_NAME)
+	if err != nil || token.Value == "" {
+		return ""
+	}
+
+	usernameHash, _, err := verifySessionToken(token.Value, a.authSecretKey, time.Now())
+	if err != nil {
+		return ""
+	}
+
+	username, exists := a.usernameHashToUsername[string(usernameHash)]
+	if !exists {
+		return ""
+	}
+
+	_, exists = a.Config.Auth.Users[username]
+	if !exists {
+		return ""
+	}
+
+	return username
+}
+
 // Handles sending the appropriate response for an unauthorized request and returns true if the request was unauthorized
 func (a *application) handleUnauthorizedResponse(w http.ResponseWriter, r *http.Request, fallback doWhenUnauthorized) bool {
 	if a.isAuthorized(w, r) {
