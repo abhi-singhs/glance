@@ -7,7 +7,7 @@
 {{ end }}
 
 {{ define "navigation-links" }}
-{{ range .App.Config.Pages }}
+{{ range $.AccessiblePages }}
 <a href="{{ $.App.Config.Server.BaseURL }}/{{ .Slug }}" class="nav-item{{ if eq .Slug $.Page.Slug }} nav-item-current{{ end }}"{{ if eq .Slug $.Page.Slug }} aria-current="page"{{ end }}>{{ .Title }}</a>
 {{ end }}
 {{ end }}

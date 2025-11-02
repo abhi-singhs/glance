@@ -13,6 +13,7 @@ import (
 	"log"
 	mathrand "math/rand/v2"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -285,8 +286,6 @@ func (a *application) isAuthorized(w http.ResponseWriter, r *http.Request) bool 
 	return true
 }
 
-// getUsernameFromRequest extracts the username from the session cookie if the user is authenticated
-// Returns empty string if not authenticated or if there's an error
 func (a *application) getUsernameFromRequest(r *http.Request) string {
 	if !a.RequiresAuth {
 		return ""
@@ -313,6 +312,18 @@ func (a *application) getUsernameFromRequest(r *http.Request) string {
 	}
 
 	return username
+}
+
+func (a *application) userHasPageAccess(username string, page *page) bool {
+	if !a.RequiresAuth {
+		return true
+	}
+
+	if len(page.AllowedUsers) == 0 {
+		return true
+	}
+
+	return slices.Contains(page.AllowedUsers, username)
 }
 
 // Handles sending the appropriate response for an unauthorized request and returns true if the request was unauthorized
@@ -357,7 +368,8 @@ func (a *application) handleLoginPageRequest(w http.ResponseWriter, r *http.Requ
 	}
 
 	data := &templateData{
-		App: a,
+		App:             a,
+		AccessiblePages: nil,
 	}
 	a.populateTemplateRequestData(&data.Request, r)
 
